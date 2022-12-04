@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '/screens/cart_screen.dart';
 import '/providers/cart.dart';
 import '/widgets/products_grid.dart';
 import '/widgets/badge.dart';
+import '/widgets/app_drawer.dart';
 
 enum FilteredOptions {
   favorites,
@@ -27,6 +29,20 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
       appBar: AppBar(
         title: const Text('Mobile Shop'),
         actions: [
+          Consumer<Cart>(
+            builder: (ctx, cart, child) => Badge(
+              value: cart.itemCount.toString(),
+              key: const ValueKey('badge'),
+              color: Colors.red,
+              child: child!,
+            ),
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(CartScreen.routeName);
+              },
+              icon: const Icon(Icons.shopping_cart),
+            ),
+          ),
           PopupMenuButton(
             onSelected: (FilteredOptions selectedValue) {
               setState(() {
@@ -49,22 +65,9 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
               ),
             ],
           ),
-          Consumer<Cart>(
-            builder: (ctx, cart, child) => Badge(
-              value: cart.itemCount.toString(),
-              key: const ValueKey('badge'),
-              color: Colors.red,
-              child: child!,
-            ),
-            child: IconButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed('/cart');
-              },
-              icon: const Icon(Icons.shopping_cart),
-            ),
-          ),
         ],
       ),
+      drawer: const AppDrawer(),
       body: ProductsGrid(showFavs: _showOnlyFavorites),
     );
   }
