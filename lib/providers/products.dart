@@ -1,9 +1,15 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'product.dart';
 
+const productsUrl =
+    'https://mobile-shop-flutter-default-rtdb.firebaseio.com/products.json';
+
 class Products with ChangeNotifier{
-  final List<Product> _items = [
-    Product(
+
+  List<Product> _items = [
+  /*  Product(
       id: 'p1',
       title: 'Red Shirt',
       description: 'A red shirt - it is pretty red!',
@@ -34,7 +40,7 @@ class Products with ChangeNotifier{
       price: 49.99,
       imageUrl:
       'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
-    ),
+    ),*/
   ];
 
   List<Product> get items {
@@ -49,28 +55,108 @@ class Products with ChangeNotifier{
     return _items.firstWhere((prod) => prod.id == id);
   }
 
-  void addProduct(Product product) {
-    final newProduct = Product(
-      title: product.title,
-      description: product.description,
-      price: product.price,
-      imageUrl: product.imageUrl,
-      id: DateTime.now().toString(),
-    );
-    _items.add(newProduct);
-    // _items.insert(0, newProduct); // at the start of the list
-    notifyListeners();
+  Future<void> fetchAndSetProducts() async {
+    try {
+      final response = await http.get(Uri.parse(productsUrl));
+      final extractedData = json.decode(response.body) as Map<String, dynamic>;
+      final List<Product> loadedProducts = [];
+      extractedData.forEach((prodId, prodData) {
+        loadedProducts.add(Product(
+          id: prodId,
+          title: prodData['title'],
+          description: prodData['description'],
+          price: prodData['price'],
+          imageUrl: prodData['imageUrl'],
+          isFavorite: prodData['isFavorite'],
+        ));
+      });
+      _items = loadedProducts;
+      notifyListeners();
+    } catch (error) {
+      rethrow;
+    }
   }
 
-  void updateProduct(String id, Product newProduct){
+  //with async and await
+  Future<void> addProduct(Product product) async {
+    final url = Uri.parse(productsUrl);
+    try {
+      final response = await http.post(
+          url,
+          body: json.encode({
+            'title': product.title,
+            'description': product.description,
+            'imageUrl': product.imageUrl,
+            'price': product.price,
+            'isFavorite': product.isFavorite,
+          }),
+      );
+      final newProduct = Product(
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        id: json.decode(response.body)['name'],
+      );
+
+      _items.add(newProduct);
+      notifyListeners();
+
+    } catch (e) {
+      rethrow;
+    }
+      
+  }
+
+  //with future
+ /* Future<void> addProduct(Product product) {
+    final url = Uri.parse(
+        'https://mobile-shop-flutter-default-rtdb.firebaseio.com/products.json'
+    );
+    return http.post(
+        url,
+        body: json.encode({
+          'title': product.title,
+          'description': product.description,
+          'imageUrl': product.imageUrl,
+          'price': product.price,
+          'isFavorite': product.isFavorite,
+        })
+    ).then((response) {
+      final newProduct = Product(
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        id: json.decode(response.body)['name'],
+      );
+      _items.add(newProduct);
+      notifyListeners();
+    }).catchError((error) {
+      throw error;
+    });
+
+  }*/
+
+  Future <void> updateProduct(String id, Product newProduct) async{
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if(prodIndex >= 0){
+      try{
+      final url = Uri.parse('https://mobile-shop-flutter-default-rtdb.firebaseio.com/products.json/$id.json');
+      await http.patch(url, body: json.encode({
+        'title': newProduct.title,
+        'description': newProduct.description,
+        'imageUrl': newProduct.imageUrl,
+        'price': newProduct.price,
+      }));
       _items[prodIndex] = newProduct;
       notifyListeners();
-    } else {
-      if (kDebugMode) {
-        print('...');
+      } catch (error){
+        print(error);
+        rethrow;
       }
+    } else {
+        print('...');
     }
   }
 
