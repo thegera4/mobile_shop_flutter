@@ -22,11 +22,12 @@ class _OrderItemState extends State<OrderItem> {
       child: Column(
         children: [
           ListTile(
-            title: Text('Total: \$ ${widget.order.amount}'),
+            title: Text('Total: \$ ${widget.order.amount.toStringAsFixed(2)}'),
             subtitle: Text(
                 DateFormat('dd/MM/yyyy hh:mm').format(widget.order.dateTime)
             ),
             trailing: IconButton(
+              tooltip: _expanded ? 'Less Details' : 'More Details',
               icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
               onPressed: () {
                 setState(() {
@@ -38,7 +39,7 @@ class _OrderItemState extends State<OrderItem> {
           if (_expanded)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-              height: min(widget.order.products.length * 35.0 + 10, 150),
+              height: min(widget.order.products.length * 45.0 + 30, 150),
               child: ListView(
                 children: widget.order.products.map((prod) => Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/screens/product_detail_screen.dart';
 import '/providers/product.dart';
+import '/providers/products.dart';
 import '/providers/cart.dart';
 
 class ProductItem extends StatelessWidget {
@@ -25,6 +26,20 @@ class ProductItem extends StatelessWidget {
               ),
               onPressed: () {
                 product.toggleFavoriteStatus();
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: product.isFavorite ?
+                      const Text(
+                        'Added to favorites!',
+                        textAlign: TextAlign.center,
+                      ) : const Text(
+                        'Removed from favorites!',
+                        textAlign: TextAlign.center,
+                      ),
+                      duration: const Duration(seconds: 2),
+                  ),
+                );
               },
               color: Theme.of(context).colorScheme.secondary,
             ),
