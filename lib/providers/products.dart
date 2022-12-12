@@ -11,6 +11,10 @@ class Products with ChangeNotifier{
 
   List<Product> _items = [];
 
+  final String authToken;
+
+  Products(this.authToken, this._items);
+
   List<Product> get items {
     return [..._items];
   }
@@ -25,7 +29,7 @@ class Products with ChangeNotifier{
 
   Future<void> fetchAndSetProducts() async {
     try {
-      final response = await http.get(Uri.parse(productsUrl));
+      final response = await http.get(Uri.parse('$productsUrl/?auth=$authToken'));
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       final List<Product> loadedProducts = [];
       if (extractedData == null) {
@@ -50,7 +54,7 @@ class Products with ChangeNotifier{
 
   //with async and await
   Future<void> addProduct(Product product) async {
-    final url = Uri.parse(productsUrl);
+    final url = Uri.parse('$productsUrl/?auth=$authToken');
     try {
       final response = await http.post(
           url,
@@ -115,7 +119,7 @@ class Products with ChangeNotifier{
       try{
       final url = Uri.parse(
           'https://mobile-shop-flutter-default-rtdb.firebaseio.com/'
-              'products/$id.json');
+              'products/$id.json?auth=$authToken');
       await http.patch(url, body: json.encode({
         'title': newProduct.title,
         'description': newProduct.description,
@@ -136,7 +140,7 @@ class Products with ChangeNotifier{
   Future<void> deleteProduct(String id) async { //optimistic deleting
     final url = Uri.parse(
         'https://mobile-shop-flutter-default-rtdb.firebaseio.com/'
-            'products/$id.json');
+            'products/$id.json?auth=$authToken');
     final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
     Product? existingProduct = _items[existingProductIndex];
     _items.removeAt(existingProductIndex);
