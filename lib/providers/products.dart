@@ -12,8 +12,9 @@ class Products with ChangeNotifier{
   List<Product> _items = [];
 
   final String authToken;
+  final String userId;
 
-  Products(this.authToken, this._items);
+  Products(this.authToken, this.userId, this._items);
 
   List<Product> get items {
     return [..._items];
@@ -35,6 +36,10 @@ class Products with ChangeNotifier{
       if (extractedData == null) {
         return;
       }
+      final favoriteResponse = await http.get(Uri.parse(
+          'https://mobile-shop-flutter-default-rtdb.firebaseio.com/'
+              'userFavorites/$userId.json?auth=$authToken'));
+      final favoriteData = json.decode(favoriteResponse.body);
       extractedData.forEach((prodId, prodData) {
         loadedProducts.add(Product(
           id: prodId,
@@ -42,7 +47,7 @@ class Products with ChangeNotifier{
           description: prodData['description'],
           price: prodData['price'],
           imageUrl: prodData['imageUrl'],
-          isFavorite: prodData['isFavorite'],
+          isFavorite: favoriteData == null ? false : favoriteData[prodId] ?? false,
         ));
       });
       _items = loadedProducts;
@@ -63,7 +68,6 @@ class Products with ChangeNotifier{
             'description': product.description,
             'imageUrl': product.imageUrl,
             'price': product.price,
-            'isFavorite': product.isFavorite,
           }),
       );
       final newProduct = Product(
