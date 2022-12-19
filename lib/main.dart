@@ -7,6 +7,7 @@ import '/screens/orders_screen.dart';
 import '/screens/user_products_screen.dart';
 import '/screens/edit_product_screen.dart';
 import '/screens/auth_screen.dart';
+import '/screens/splash_screen.dart';
 import '/providers/products.dart';
 import '/providers/cart.dart';
 import '/providers/orders.dart';
@@ -26,17 +27,18 @@ class MyApp extends StatelessWidget {
             create: (ctx) => Products('', '', []),
             update: (ctx, auth, previousProducts) =>
                 Products(
-                    auth.token!,
-                    auth.userId,
+                    auth.token ?? '',
+                    auth.userId ?? '',
                     previousProducts == null ? [] : previousProducts.items
                 ),
           ),
           ChangeNotifierProvider(create: (ctx) => Cart(),),
           ChangeNotifierProxyProvider<Auth, Orders>(
-              create: (ctx) => Orders('', []),
+              create: (ctx) => Orders('', '', []),
               update: (ctx, auth, previousOrders) =>
                   Orders(
-                      auth.token!,
+                      auth.token ?? '',
+                      auth.userId ?? '',
                       previousOrders == null ? [] : previousOrders.orders
                   ),
           ),
@@ -50,7 +52,13 @@ class MyApp extends StatelessWidget {
                   .copyWith(secondary: Colors.deepOrange),
               fontFamily: 'Lato',
             ),
-            home: auth.isAuth ? const ProductsOverviewScreen() : const AuthScreen(),
+            home: auth.isAuth ?
+            const ProductsOverviewScreen() : FutureBuilder(
+              future: auth.tryAutoLogin(),
+              builder: (ctx, authResultSnapshot) =>
+                  authResultSnapshot.connectionState == ConnectionState.waiting ?
+                  const SplashScreen() : const AuthScreen(),
+            ),
             routes: {
               ProductDetailScreen.routeName: (ctx) => const ProductDetailScreen(),
               CartScreen.routeName: (ctx) => const CartScreen(),

@@ -44,11 +44,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
             );
           } else {
             if (dataSnapshot.error != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('An error occurred!'),
-                ),
-              );
               return const Center(
                 child: Text('Something went wrong, please try again later!'),
               );

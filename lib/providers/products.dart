@@ -28,9 +28,13 @@ class Products with ChangeNotifier{
     return _items.firstWhere((prod) => prod.id == id);
   }
 
-  Future<void> fetchAndSetProducts() async {
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
     try {
-      final response = await http.get(Uri.parse('$productsUrl/?auth=$authToken'));
+      final filterString = filterByUser ?
+      'orderBy="creatorId"&equalTo="$userId"' : '';
+      final response = await http.get(
+          Uri.parse('$productsUrl/?auth=$authToken&$filterString')
+      );
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       final List<Product> loadedProducts = [];
       if (extractedData == null) {
@@ -68,6 +72,7 @@ class Products with ChangeNotifier{
             'description': product.description,
             'imageUrl': product.imageUrl,
             'price': product.price,
+            'creatorId': userId,
           }),
       );
       final newProduct = Product(
